@@ -21,6 +21,7 @@ def update_line(hl, x, y):
     hl.set_ydata(np.append(hl.get_ydata(), y))
     py.draw()
 
+
 def calc_mse_average(targets, output):
     targets = np.array(targets)
     output = np.array(output)
@@ -55,7 +56,7 @@ class NeuralNetLearner(SupervisedLearner):
     # update the weights
     weights = 0
     learning_rate = .1
-    percent_vs = .4
+    percent_vs = .2
 
     def __init__(self):
         pass
@@ -65,30 +66,50 @@ class NeuralNetLearner(SupervisedLearner):
 
         res_array = []
         mse_diff = 0
+        mse_val = 0
         size_target_array = np.unique(vs_labels.col(0))
         for row_index in range(vs_set.rows):
-            # targets = [0]*size_target_array
+            targets = [0] * size_target_array
 
             # print("COLLLL,", vs_set.cols)
-            # targets[int(vs_labels.row(row_index)[0])] = 1
+            targets[int(vs_labels.row(row_index)[0])] = 1
             # print(vs_set.row(row_index))
-            instance_result = self.predict_val_set(vs_set.row(row_index))
+            instance_result, output_nodes = self.predict_val_set(vs_set.row(row_index))
             res_array.append(instance_result)
             if instance_result != vs_labels.row(row_index)[0]:
                 valid = False
-                break
-            # print("ARGET", targets)
-            # mse_diff += calc_mse_average(targets, self.hidden_layers[-1])
-        # mse_val = mse_diff / vs_set.rows
-        # res_array
-        # vs_labels.col(0)
-        # accuracy = len(set(vs_labels.col(0)) - set(res_array))
-        # print("Accuracy", accuracy)
-        # print("MSE", mse_val)
+            # print("", targets)
+            # print("Hidden layer: ",res_array )
+            mse_diff_val = calc_mse_average(targets, output_nodes)
+            mse_diff += mse_diff_val
+            # print("MSE diff val ", mse_diff_val)
+        if vs_set.rows != 0:
+            # print("MSE Diff: ", mse_diff)
+            # print("Num instances: ", vs_set.rows)
+            mse_val = mse_diff / vs_set.rows
+            # print("MSE Val: ", mse_val)
+        else:
+            mse_val = 0
+        res_array
+        vs_labels.col(0)
 
-        # if valid:
+
+        diff_count = 0
+        if vs_labels.rows == len(res_array):
+            for i in range(vs_labels.rows):
+                if vs_labels.row(i)[0] != res_array[i]:
+                    diff_count += 1
+        accuracy = 0
+        if vs_labels.rows > 0:
+            # print("diff count :", diff_count)
+            # print("vs_labels", vs_labels.rows)
+            accuracy = 1 - float(diff_count) / float(vs_labels.rows)
+            # print("Accuracy", accuracy)
+            # print("MSE", mse_val)
+
+            # if valid:
             # print("Results are all valid:", res_array)
-        return valid #, accuracy, mse_val
+        return valid, accuracy, mse_val
 
     def predict_val_set(self, vs_features):
         """
@@ -119,9 +140,9 @@ class NeuralNetLearner(SupervisedLearner):
         res = res_arr.index(max(res_arr))
         # print(res_arr, "res:", res)
         # print(res, end=', ')
-        return res
+        return res, out_nodes
 
-    def train(self, features, labels, test_features = Matrix(), test_labels = Matrix()):
+    def train(self, features, labels, test_features2=Matrix(), test_labels2=Matrix()):
         """
         :type features: Matrix
         :type labels: Matrix
@@ -129,14 +150,19 @@ class NeuralNetLearner(SupervisedLearner):
 
         total_mse_to_plot = []
         features.shuffle(labels)
+        test_features = adams_copy.deepcopy(test_features2)
+        test_labels = adams_copy.deepcopy(test_labels2)
+        test_features.shuffle(test_labels)
         # Append the features
         split_index = int(features.rows * self.percent_vs)
         # print("Split index", split_index)
         vs_matrix = Matrix(features, 0, 0, split_index, features.cols)
-        test_matrix = Matrix(features, split_index + 1, 0, features.rows - split_index-1, features.cols)
+        test_matrix = Matrix(features, split_index + 1, 0, features.rows - split_index - 1, features.cols)
         features = test_matrix
         for row_index in range(vs_matrix.rows):
             vs_matrix.row(row_index).append(self.BIAS)
+        for row_index in range(test_features.rows):
+            test_features.row(row_index).append(self.BIAS)
         # print("Features: ")
         # for i in range(features.rows):
         #     print(features.row(i))
@@ -144,7 +170,7 @@ class NeuralNetLearner(SupervisedLearner):
         # for i in range(labels.rows):
         #     print(labels.row(i))
         vs_labels_matrix = Matrix(labels, 0, 0, split_index, labels.cols)
-        test_labels_matrix = Matrix(labels, split_index +1, 0, labels.rows - split_index-1, labels.cols)
+        test_labels_matrix = Matrix(labels, split_index + 1, 0, labels.rows - split_index - 1, labels.cols)
         labels = test_labels_matrix
         # [self.hidden_layers.append(features.row(0))
         # self.deltas.append(features.row(0))
@@ -386,42 +412,39 @@ class NeuralNetLearner(SupervisedLearner):
                 #     # print("DELTAS", deltas)
             mse_prev = mse_diff
             mse_diff = mse_average / num_instances
-            # total_mse_to_plot.append(mse_diff)
-            #, accuracy, mse_val
-            valid= self.check_validation_set(test_features, test_labels)
-            # mse_average_test_set.append(mse_val)
-            # accuracy_test_set.append(accuracy)
+            total_mse_to_plot.append(mse_diff)
             # print("HERE")
-            # , accuracy, mse_val
-            valid = self.check_validation_set(vs_matrix, vs_labels_matrix)
-            # accuracy_v_set.append(accuracy)
-            # mse_average_v_set.append(mse_val)
+            valid, accuracy, mse_val = self.check_validation_set(test_features, test_labels)
+            mse_average_test_set.append(mse_val)
+            accuracy_test_set.append(accuracy)
+            # print("here")
+            valid, accuracy, mse_val = self.check_validation_set(vs_matrix, vs_labels_matrix)
+            accuracy_v_set.append(accuracy)
+            mse_average_v_set.append(mse_val)
             if valid:
                 break
             num_epochs += 1
-        # print(total_mse_to_plot)
+
+        # ============== PLOT GRAPH ==========================
         py.plot(total_mse_to_plot, 'o', label="Training Set MSE")
         py.plot(mse_average_test_set, 'x', label="Test Set MSE")
         py.plot(mse_average_v_set, '-', label="Validation Set MSE")
-        py.plot(accuracy_test_set, 'x', label="Test Set Accuracy")
+        py.plot(accuracy_test_set, '-', label="Test Set Accuracy")
         py.plot(accuracy_v_set, '-', label="Validation Set Accuracy")
         py.legend()
         py.show(block=True)
-
-
-
-
-
+        #=====================================================
 
     # number of outputs is the last layer
     def predict(self, features, labels):
+        # print("\n\n\nCALLLLLL *************************************************\n\n\n")
         """
         :type features: [float]
         :type labels: [float]
         """
         final_layers = adams_copy.deepcopy(self.hidden_layers)
         final_weights = adams_copy.deepcopy(self.layer_weights)
-        final_layers[0] = features
+        final_layers[0] = adams_copy.deepcopy(features)
         final_layers[0].append(self.BIAS)
 
         # print("Final:", final_layers)
@@ -433,7 +456,13 @@ class NeuralNetLearner(SupervisedLearner):
             out_nodes = final_layers[index + 1]
 
             for j in range(len(out_nodes)):
+                # print("\n NODES:")
+                # print(in_nodes)
+                # print()
+                # print(out_nodes)
+                # print()
                 if index == len(final_weights) - 1 or j < len(out_nodes) - 1:
+                    # print(final_weights[index][j])
                     net_j = np.sum(np.multiply(in_nodes, final_weights[index][j]))
                     out_nodes[j] = output_net(net_j)
                 else:

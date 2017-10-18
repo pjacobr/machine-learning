@@ -55,6 +55,7 @@ class SupervisedLearner:
                 feat = features.row(i)
                 targ = labels.row(i)
                 pred[0] = 0.0       # make sure the prediction is not biased by a previous prediction
+                # print("Call here")
                 self.predict(feat, pred)
                 delta = targ[0] - pred[0]
                 sse += delta**2
@@ -73,6 +74,7 @@ class SupervisedLearner:
                 targ = int(labels.get(i, 0))
                 if targ >= label_values_count:
                     raise Exception("The label is out of range")
+                # print("CALL HERE", i)
                 self.predict(feat, prediction)
                 pred = int(prediction[i])
                 #print(pred)
