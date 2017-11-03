@@ -6,7 +6,7 @@ import numpy as np
 import copy as adams_copy
 import matplotlib
 from matplotlib import pyplot as py
-
+import csv
 
 def output_net(net):
     return 1 / (1 + np.exp(-net))
@@ -47,15 +47,15 @@ class NeuralNetLearner(SupervisedLearner):
 
     labels = []
     BIAS = 1
-    size_of_layers = [8]
+    size_of_layers = [64, 32, 16]
     hidden_layers = []
     layer_weights = []
     change_in_weights = []
     deltas = []
-    momentum_percentage = 0
+    momentum_percentage = .4
     # update the weights
     weights = 0
-    learning_rate = .1
+    learning_rate = .4
     percent_vs = .2
 
     def __init__(self):
@@ -426,15 +426,51 @@ class NeuralNetLearner(SupervisedLearner):
             num_epochs += 1
 
         # ============== PLOT GRAPH ==========================
-        py.plot(total_mse_to_plot, 'o', label="Training Set MSE")
-        py.plot(mse_average_test_set, 'x', label="Test Set MSE")
-        py.plot(mse_average_v_set, '-', label="Validation Set MSE")
-        py.plot(accuracy_test_set, '-', label="Test Set Accuracy")
-        py.plot(accuracy_v_set, '-', label="Validation Set Accuracy")
-        py.legend()
-        py.show(block=True)
-        #=====================================================
 
+        # py.plot(total_mse_to_plot, 'o', label="Training Set MSE")
+        # py.plot(mse_average_test_set, 'x', label="Test Set MSE")
+        # py.plot(mse_average_v_set, '-', label="Validation Set MSE")
+        # py.plot(accuracy_test_set, '-', label="Test Set Accuracy")
+        # py.plot(accuracy_v_set, '-', label="Validation Set Accuracy")
+        #
+        # py.ylabel("Mean Square Error per Epoch (percent)")
+        # py.xlabel("Number of Epochs")
+        # py.legend()
+        # py.show(block=True)
+        # =====================================================
+
+        # Export the highest and lowest values that I get =====
+        # FIGURE OUT THE BEST LEARNING RATE
+        # f = open('vowel_data.csv', 'ab')
+        # w = csv.writer(f)
+        # vowel_data = [max(accuracy_v_set), max(accuracy_test_set), min(mse_average_test_set), min(total_mse_to_plot), min(mse_average_v_set), self.learning_rate, num_epochs]
+        # w.writerow(vowel_data)
+        # f.close()
+        # print("VS max", max(accuracy_v_set))
+        # print("Test Set max", max(accuracy_test_set))
+        # print("MSE min test", min(mse_average_test_set))
+        # print("mse min total", min(total_mse_to_plot))
+        # print("mse min val", min(mse_average_v_set))
+
+        # ================Get the best number hidden nodes ===============
+        # f = open('hidden_nodes.csv', 'ab')
+        # w = csv.writer(f)
+        # vowel_data = [min(mse_average_test_set), min(total_mse_to_plot), min(mse_average_v_set), self.size_of_layers[0]]
+        # w.writerow(vowel_data)
+        # f.close()
+        # print("MSE min test", min(mse_average_test_set))
+        # print("mse min total", min(total_mse_to_plot))
+        # print("mse min val", min(mse_average_v_set))
+
+        # ====================== Momentum ===============================
+        # f = open('layers.csv', 'ab')
+        # w = csv.writer(f)
+        # vowel_data = [min(mse_average_test_set), min(total_mse_to_plot), min(mse_average_v_set), len(self.size_of_layers)]
+        # w.writerow(vowel_data)
+        # f.close()
+        print("MSE min test", min(mse_average_test_set))
+        print("mse min total", min(total_mse_to_plot))
+        print("mse min val", min(mse_average_v_set))
     # number of outputs is the last layer
     def predict(self, features, labels):
         # print("\n\n\nCALLLLLL *************************************************\n\n\n")

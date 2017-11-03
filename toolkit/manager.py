@@ -5,6 +5,7 @@ from .supervised_learner import SupervisedLearner
 from .baseline_learner import BaselineLearner
 from .perceptron_learner import PerceptronLearner
 from .neural_net_learner import NeuralNetLearner
+from .decision_tree_learner import DecisionTreeLearner
 from .matrix import Matrix
 import random
 import argparse
@@ -28,8 +29,8 @@ class MLSystemManager:
         modelmap = {
             "baseline": BaselineLearner(),
             "perceptron": PerceptronLearner(),
-            "neuralnet": NeuralNetLearner()
-            #"decisiontree": DecisionTreeLearner(),
+            "neuralnet": NeuralNetLearner(),
+            "decisiontree": DecisionTreeLearner()
             #"knn": InstanceBasedLearner()
         }
         if model in modelmap:
@@ -49,6 +50,7 @@ class MLSystemManager:
         random.seed(args.seed) # Use a seed for deterministic results, if provided (makes debugging easier)
 
         # load the model
+
         learner = self.get_learner(learner_name)
 
         # load the ARFF file
@@ -287,7 +289,6 @@ class MLSystemManager:
         parser.add_argument('-L', required=True, choices=['baseline', 'perceptron', 'neuralnet', 'decisiontree', 'knn'], help='Learning Algorithm')
         parser.add_argument('-A', '--arff', metavar='filename', required=True, help='ARFF file')
         parser.add_argument('-E', metavar=('METHOD', 'args'), required=True, nargs='+', help="Evaluation method (training | static <test_ARFF_file> | random <%%_for_training> | cross <num_folds>)")
-
         return parser
 
 

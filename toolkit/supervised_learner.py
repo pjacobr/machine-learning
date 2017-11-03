@@ -76,11 +76,12 @@ class SupervisedLearner:
                     raise Exception("The label is out of range")
                 # print("CALL HERE", i)
                 self.predict(feat, prediction)
-                pred = int(prediction[i])
-                #print(pred)
-                if confusion:
-                    confusion.set(targ, pred, confusion.get(targ, pred)+1)
-                if pred == targ:
-                    correct_count += 1
+                if len(prediction) > 0:
+                    pred = int(prediction[i])
+                    #print(pred)
+                    if confusion:
+                        confusion.set(targ, pred, confusion.get(targ, pred)+1)
+                    if pred == targ:
+                        correct_count += 1
 
             return correct_count / features.rows
