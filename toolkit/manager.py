@@ -31,7 +31,7 @@ class MLSystemManager:
             "perceptron": PerceptronLearner(),
             "neuralnet": NeuralNetLearner(),
             "decisiontree": DecisionTreeLearner()
-            #"knn": InstanceBasedLearner()
+            "knn": InstanceBasedLearner()
         }
         if model in modelmap:
             return modelmap[model]
@@ -135,11 +135,18 @@ class MLSystemManager:
 
             test_features = Matrix(data, train_size, 0, data.rows - train_size, data.cols-1)
             test_labels = Matrix(data, train_size, data.cols-1, data.rows - train_size, 1)
+            neural = False
+            if neural :
+                start_time = time.time()
+                learner.train(train_features, train_labels, test_features, test_labels)
+                elapsed_time = time.time() - start_time
+                print("Time to train (in seconds): {}".format(elapsed_time))
+            else:
+                start_time = time.time()
+                learner.train(train_features, train_labels)
+                elapsed_time = time.time() - start_time
+                print("Time to train (in seconds): {}".format(elapsed_time))
 
-            start_time = time.time()
-            learner.train(train_features, train_labels, test_features, test_labels)
-            elapsed_time = time.time() - start_time
-            print("Time to train (in seconds): {}".format(elapsed_time))
 
             train_accuracy = learner.measure_accuracy(train_features, train_labels)
             print("Training set accuracy: {}".format(train_accuracy))

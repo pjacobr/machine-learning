@@ -76,7 +76,9 @@ class SupervisedLearner:
                     raise Exception("The label is out of range")
                 # print("CALL HERE", i)
                 self.predict(feat, prediction)
+
                 if len(prediction) > 0:
+                    # print(prediction)
                     pred = int(prediction[i])
                     #print(pred)
                     if confusion:
